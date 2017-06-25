@@ -2,6 +2,9 @@ package com.example.m.hellokotlin
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.text.Editable
+import com.github.kittinunf.fuel.httpPost
+import com.github.kittinunf.result.Result
 import org.jetbrains.anko.*
 import org.jetbrains.anko.sdk25.coroutines.onClick
 
@@ -9,6 +12,26 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         MainActivityUI().setContentView(this)
+    }
+
+    fun login(email: Editable, password: Editable) {
+        val jsonPayload = "{\"email\": \"${email}\", \"password\":\"${password}\"}"
+
+        ctx.toast("Attempt to login with '${jsonPayload}'")
+
+        "http://www.ticktockwatch.net/auth/login".httpPost().body(jsonPayload)
+            .responseString { request, response, result ->
+                val (data, error) = result
+
+                when (result) {
+                    is Result.Failure -> {
+                        ctx.toast("Auth failed: ${error}")
+                    }
+                    is Result.Success -> {
+                        ctx.toast("Auth OK!")
+                    }
+                }
+            }
     }
 }
 
@@ -19,7 +42,7 @@ class MainActivityUI: AnkoComponent<MainActivity> {
 
             imageView(R.mipmap.ic_launcher)
 
-            val name = editText {
+            val email = editText {
                 hintResource = R.string.email
                 textSize = 24f
             }
@@ -33,7 +56,7 @@ class MainActivityUI: AnkoComponent<MainActivity> {
                 textSize = 26f
 
                 onClick {
-                    toast("Hello ${name.text}")
+                    ui.owner.login(email.text, password.text)
                 }
             }
         }
